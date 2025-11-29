@@ -32,12 +32,19 @@
             margin-bottom: 10px;
         }
         .status {
-            background: #48bb78;
-            color: white;
             padding: 8px 15px;
             border-radius: 20px;
             display: inline-block;
             margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .status.connected {
+            background: #48bb78;
+            color: white;
+        }
+        .status.disconnected {
+            background: #e53e3e;
+            color: white;
         }
         .chat-box {
             height: 300px;
@@ -54,6 +61,7 @@
             border-radius: 15px;
             max-width: 85%;
             word-wrap: break-word;
+            white-space: pre-line;
         }
         .user-message {
             background: #667eea;
@@ -94,6 +102,7 @@
             display: flex;
             gap: 10px;
             justify-content: center;
+            margin-bottom: 15px;
         }
         .control-btn {
             background: #edf2f7;
@@ -116,19 +125,28 @@
             margin-bottom: 8px;
             color: #4a5568;
         }
+        .typing {
+            font-style: italic;
+            color: #666;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🤖 MongoDB Chatbot</h1>
-            <div class="status" id="status">Loading...</div>
-            <p>I remember everything in database! 💾</p>
+            <div class="status" id="status">Checking database...</div>
+            <p>I remember everything in MongoDB! 💾</p>
         </div>
         
         <div class="chat-box" id="chatBox">
             <div class="message bot-message">
-                Hello! I'm powered by MongoDB. Teach me things and I'll remember them forever! Try: "Python is a programming language"
+                Welcome! I'm powered by MongoDB. I'll remember everything you teach me! 🎯
+                
+                Try these:
+                • "Python is a programming language"
+                • "What is python?"
+                • "What do you know?"
             </div>
         </div>
         
@@ -138,16 +156,17 @@
         </div>
         
         <div class="controls">
-            <button class="control-btn" onclick="showKnowledge()">Show My Knowledge</button>
-            <button class="control-btn" onclick="clearChat()">Clear Chat</button>
+            <button class="control-btn" onclick="showKnowledge()">📚 Show Knowledge</button>
+            <button class="control-btn" onclick="clearChat()">🗑️ Clear Chat</button>
+            <button class="control-btn" onclick="showHelp()">❓ Help</button>
         </div>
         
         <div class="examples">
-            <h4>💡 Examples:</h4>
-            <div>• "Python is a programming language"</div>
-            <div>• "What is python?"</div>
+            <h4>💡 Examples to try:</h4>
+            <div>• "JavaScript is a programming language"</div>
+            <div>• "What is javascript?"</div>
+            <div>• "MongoDB is a database"</div>
             <div>• "What do you know?"</div>
-            <div>• "Apple is a fruit company"</div>
         </div>
     </div>
 
@@ -158,17 +177,25 @@
         const status = document.getElementById('status');
 
         // Check database status
-        fetch('/api/knowledge')
-            .then(response => response.json())
-            .then(data => {
-                if (data.databaseConnected) {
+        checkDatabaseStatus();
+
+        async function checkDatabaseStatus() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                if (data.database === 'connected') {
                     status.textContent = '✅ MongoDB Connected';
-                    status.style.background = '#48bb78';
+                    status.className = 'status connected';
                 } else {
-                    status.textContent = '❌ Using Memory Storage';
-                    status.style.background = '#e53e3e';
+                    status.textContent = '⚠️ Using Memory Storage';
+                    status.className = 'status disconnected';
                 }
-            });
+            } catch (error) {
+                status.textContent = '❌ Server Offline';
+                status.className = 'status disconnected';
+            }
+        }
 
         function addMessage(text, isUser = false) {
             const messageDiv = document.createElement('div');
@@ -187,10 +214,8 @@
 
             // Show typing
             const typingDiv = document.createElement('div');
-            typingDiv.className = 'message bot-message';
+            typingDiv.className = 'message bot-message typing';
             typingDiv.textContent = '💭 Thinking...';
-            typingDiv.style.fontStyle = 'italic';
-            typingDiv.style.color = '#666';
             chatBox.appendChild(typingDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -215,13 +240,13 @@
 
             } catch (error) {
                 typingDiv.remove();
-                addMessage("❌ Sorry, I'm having trouble connecting.");
+                addMessage("❌ Sorry, I'm having trouble connecting to the server.");
             }
         }
 
         async function showKnowledge() {
             const typingDiv = document.createElement('div');
-            typingDiv.className = 'message bot-message';
+            typingDiv.className = 'message bot-message typing';
             typingDiv.textContent = '💭 Checking database...';
             chatBox.appendChild(typingDiv);
 
@@ -231,19 +256,38 @@
                 
                 typingDiv.remove();
                 
-                if (Object.keys(data.knowledge).length === 0) {
-                    addMessage("I haven't learned anything yet! Teach me something!");
+                if (data.totalItems === 0) {
+                    addMessage("I haven't learned anything yet! Teach me something like 'Python is a programming language'");
                 } else {
-                    let message = "📚 Here's what I know:\n";
-                    Object.entries(data.knowledge).forEach(([topic, fact]) => {
-                        message += `\n• ${topic}: ${fact}`;
+                    let message = `📚 I know ${data.totalItems} things (${data.databaseConnected ? 'MongoDB' : 'Memory'}):\n\n`;
+                    Object.entries(data.knowledge).forEach(([topic, fact], index) => {
+                        message += `${index + 1}. ${topic}: ${fact}\n`;
                     });
                     addMessage(message);
                 }
             } catch (error) {
                 typingDiv.remove();
-                addMessage("❌ Could not fetch knowledge.");
+                addMessage("❌ Could not fetch knowledge from server.");
             }
+        }
+
+        function showHelp() {
+            addMessage(`🤖 How to use this chatbot:
+
+💾 TEACH ME:
+• "Python is a programming language"
+• "MongoDB is a database" 
+• "JavaScript is for web development"
+
+❓ ASK ME:
+• "What is python?"
+• "What is mongodb?"
+
+📚 CHECK KNOWLEDGE:
+• "What do you know?"
+• "Show knowledge"
+
+I'll remember everything in MongoDB!`);
         }
 
         function clearChat() {
