@@ -3,99 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Human Chatbot - No API Key Required</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>MongoDB Chatbot</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            background: #48bb78;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .chat-box {
+            height: 300px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        .bot-message {
+            background: #e9ecef;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        #sendButton {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #sendButton:hover {
+            background: #5a6fd8;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .control-btn {
+            background: #edf2f7;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .control-btn:hover {
+            background: #e2e8f0;
+        }
+        .examples {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f4ff;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+        .examples h4 {
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="header-content">
-                <h1><i class="fas fa-robot"></i> Human Chatbot</h1>
-                <p class="subtitle">No API Keys Required • 100% Free • Human-like Responses</p>
-                <div class="status-online">
-                    <i class="fas fa-circle"></i> Online
-                </div>
+        <div class="header">
+            <h1>🤖 MongoDB Chatbot</h1>
+            <div class="status" id="status">Loading...</div>
+            <p>I remember everything in database! 💾</p>
+        </div>
+        
+        <div class="chat-box" id="chatBox">
+            <div class="message bot-message">
+                Hello! I'm powered by MongoDB. Teach me things and I'll remember them forever! Try: "Python is a programming language"
             </div>
-        </header>
-
-        <div class="chat-container">
-            <div class="chat-sidebar">
-                <div class="sidebar-section">
-                    <h3><i class="fas fa-info-circle"></i> About</h3>
-                    <p>This chatbot uses advanced pattern matching and contextual understanding to provide human-like responses without any external APIs.</p>
-                </div>
-                <div class="sidebar-section">
-                    <h3><i class="fas fa-lightbulb"></i> Features</h3>
-                    <ul>
-                        <li>🤖 No API keys required</li>
-                        <li>💬 Human-like conversations</li>
-                        <li>🎯 Context-aware responses</li>
-                        <li>💾 Conversation memory</li>
-                        <li>📱 Mobile friendly</li>
-                    </ul>
-                </div>
-                <div class="sidebar-section">
-                    <h3><i class="fas fa-code"></i> API Endpoints</h3>
-                    <div class="endpoint">
-                        <code>POST /api/chat</code>
-                        <span>Send messages</span>
-                    </div>
-                    <div class="endpoint">
-                        <code>GET /api/history/:userId</code>
-                        <span>Get chat history</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="chat-main">
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message bot-message">
-                        <div class="message-avatar">
-                            <i class="fas fa-robot"></i>
-                        </div>
-                        <div class="message-content">
-                            <div class="message-text">
-                                Hey there! 👋 I'm your human-like chatbot. I don't need any API keys and I'm completely free to use! What would you like to chat about today?
-                            </div>
-                            <div class="message-time" id="initialTime"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="chat-input-container">
-                    <div class="typing-indicator" id="typingIndicator" style="display: none;">
-                        <div class="typing-dots">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                        <span>Bot is typing...</span>
-                    </div>
-                    <div class="input-group">
-                        <input 
-                            type="text" 
-                            id="messageInput" 
-                            placeholder="Type your message here... (Press Enter to send)"
-                            maxlength="500"
-                        >
-                        <button id="sendButton">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                    <div class="chat-controls">
-                        <button id="clearHistory" class="control-btn">
-                            <i class="fas fa-trash"></i> Clear History
-                        </button>
-                        <button id="exportChat" class="control-btn">
-                            <i class="fas fa-download"></i> Export Chat
-                        </button>
-                    </div>
-                </div>
-            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Type your message..." autocomplete="off">
+            <button id="sendButton">Send</button>
+        </div>
+        
+        <div class="controls">
+            <button class="control-btn" onclick="showKnowledge()">Show My Knowledge</button>
+            <button class="control-btn" onclick="clearChat()">Clear Chat</button>
+        </div>
+        
+        <div class="examples">
+            <h4>💡 Examples:</h4>
+            <div>• "Python is a programming language"</div>
+            <div>• "What is python?"</div>
+            <div>• "What do you know?"</div>
+            <div>• "Apple is a fruit company"</div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const chatBox = document.getElementById('chatBox');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const status = document.getElementById('status');
+
+        // Check database status
+        fetch('/api/knowledge')
+            .then(response => response.json())
+            .then(data => {
+                if (data.databaseConnected) {
+                    status.textContent = '✅ MongoDB Connected';
+                    status.style.background = '#48bb78';
+                } else {
+                    status.textContent = '❌ Using Memory Storage';
+                    status.style.background = '#e53e3e';
+                }
+            });
+
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            messageDiv.textContent = text;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            messageInput.value = '';
+
+            // Show typing
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message';
+            typingDiv.textContent = '💭 Thinking...';
+            typingDiv.style.fontStyle = 'italic';
+            typingDiv.style.color = '#666';
+            chatBox.appendChild(typingDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                
+                // Remove typing
+                typingDiv.remove();
+                
+                // Add bot response after delay
+                setTimeout(() => {
+                    addMessage(data.response);
+                }, data.typingDelay || 500);
+
+            } catch (error) {
+                typingDiv.remove();
+                addMessage("❌ Sorry, I'm having trouble connecting.");
+            }
+        }
+
+        async function showKnowledge() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message';
+            typingDiv.textContent = '💭 Checking database...';
+            chatBox.appendChild(typingDiv);
+
+            try {
+                const response = await fetch('/api/knowledge');
+                const data = await response.json();
+                
+                typingDiv.remove();
+                
+                if (Object.keys(data.knowledge).length === 0) {
+                    addMessage("I haven't learned anything yet! Teach me something!");
+                } else {
+                    let message = "📚 Here's what I know:\n";
+                    Object.entries(data.knowledge).forEach(([topic, fact]) => {
+                        message += `\n• ${topic}: ${fact}`;
+                    });
+                    addMessage(message);
+                }
+            } catch (error) {
+                typingDiv.remove();
+                addMessage("❌ Could not fetch knowledge.");
+            }
+        }
+
+        function clearChat() {
+            chatBox.innerHTML = '<div class="message bot-message">Chat cleared! Ready to learn new things! 🎯</div>';
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Focus input
+        messageInput.focus();
+    </script>
 </body>
 </html>
